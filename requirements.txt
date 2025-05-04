@@ -1,0 +1,9 @@
+librosa
+music21
+torch
+torchaudio
+numpy
+matplotlib
+jupyter
+tqdm
+PyYAML
