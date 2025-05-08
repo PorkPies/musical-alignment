@@ -13,7 +13,7 @@ from data.scripts.extract_audio_features import extract_cqt
 
 # Automatically download FluidR3_GM soundfont if not present
 def download_soundfont(soundfont_path):
-    url = "https://github.com/urish/cinto/blob/master/media/FluidR3%20GM.sf2"
+    url = "https://github.com/Jacalz/fluid-soundfont/raw/refs/heads/master/original-files/FluidR3_GM.sf2"
     print("Downloading FluidR3_GM.sf2 soundfont...")
     urllib.request.urlretrieve(url, soundfont_path)
     print("Downloaded soundfont to:", soundfont_path)
