@@ -15,7 +15,6 @@ EPOCHS = 10
 LEARNING_RATE = 1e-3
 NUM_CLASSES = 100  # adjust to your dataset
 
-print(os.listdir())
 
 def train():
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
