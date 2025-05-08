@@ -1,16 +1,21 @@
+import os
+import sys
 import torch
 import torch.nn as nn
 import torch.optim as optim
 from torch.utils.data import DataLoader
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 from models.baseline_model import BaselineCNN
 from models.utils import CQTBarDataset
 
 # Config
-DATA_DIR = "data/processed"
+DATA_DIR = "musical-alignment/data/processed/"
 BATCH_SIZE = 8
 EPOCHS = 10
 LEARNING_RATE = 1e-3
 NUM_CLASSES = 100  # adjust to your dataset
+
+print(os.listdir())
 
 def train():
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
