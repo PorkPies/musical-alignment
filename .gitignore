@@ -2,3 +2,4 @@ __pycache__*
 *.musicxml
 *.mid
 *.npy
+*.wav

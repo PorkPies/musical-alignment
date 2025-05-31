@@ -3,23 +3,36 @@ import shutil
 import sys
 import subprocess
 import urllib.request
-import fluidsynth
-import soundfile as sf
 import numpy as np
 
-sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '../..')))
+import soundfile as sf  # required by some fluidSynth setups
+import fluidsynth
 
+# Add parent directory to import path for extract_cqt
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '../..')))
 from data.scripts.extract_audio_features import extract_cqt
 
-# Automatically download FluidR3_GM soundfont if not present
 def download_soundfont(soundfont_path):
+    """
+    Download the FluidR3_GM.sf2 soundfont if it's not already available.
+
+    Parameters:
+        soundfont_path (str): Local path where the soundfont will be saved.
+    """
     url = "https://github.com/Jacalz/fluid-soundfont/raw/refs/heads/master/original-files/FluidR3_GM.sf2"
     print("Downloading FluidR3_GM.sf2 soundfont...")
     urllib.request.urlretrieve(url, soundfont_path)
     print("Downloaded soundfont to:", soundfont_path)
 
-# Synthesize MIDI to WAV using pyfluidsynth
 def synthesize_midi_to_wav(midi_path, wav_path, soundfont_path):
+    """
+    Use FluidSynth to convert a MIDI file to WAV using the provided soundfont.
+
+    Parameters:
+        midi_path (str): Path to the MIDI file.
+        wav_path (str): Path where the WAV file will be saved.
+        soundfont_path (str): Path to the .sf2 soundfont file.
+    """
     print(f"Synthesizing {midi_path} -> {wav_path}")
     cmd = [
         "fluidsynth",
@@ -33,8 +46,18 @@ def synthesize_midi_to_wav(midi_path, wav_path, soundfont_path):
     if result.returncode != 0:
         raise RuntimeError(f"FluidSynth error: {result.stderr}")
 
-# Generate synthetic dataset from MIDI files
 def generate_synthetic_data(midi_dir, output_dir, soundfont_path="FluidR3_GM.sf2"):
+    """
+    Process all MIDI files in a directory:
+    - Synthesize each to WAV using FluidSynth
+    - Extract Constant-Q Transform (CQT) features
+    - Save the CQT as a NumPy array
+
+    Parameters:
+        midi_dir (str): Directory containing input MIDI files.
+        output_dir (str): Directory to save processed CQT .npy files.
+        soundfont_path (str): Path to the .sf2 soundfont file.
+    """
     if not os.path.exists(soundfont_path):
         download_soundfont(soundfont_path)
 
@@ -43,6 +66,7 @@ def generate_synthetic_data(midi_dir, output_dir, soundfont_path="FluidR3_GM.sf2
         return
 
     os.makedirs(output_dir, exist_ok=True)
+
     for i, midi_file in enumerate(os.listdir(midi_dir)):
         print(f"Found file: {midi_file}")
         if not midi_file.endswith(".mid"):
@@ -65,7 +89,13 @@ def generate_synthetic_data(midi_dir, output_dir, soundfont_path="FluidR3_GM.sf2
                 os.remove(wav_path)
 
 if __name__ == "__main__":
+    # Determine base project directory
     base_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), "../.."))
+    
+    # Set default input and output paths
     midi_dir = os.path.join(base_dir, "data", "raw")
     output_dir = os.path.join(base_dir, "data", "processed")
+
+    print(f"Generating synthetic data from:\n  MIDI: {midi_dir}\n  Output: {output_dir}")
     generate_synthetic_data(midi_dir, output_dir)
+    print("Dataset generation complete.")
