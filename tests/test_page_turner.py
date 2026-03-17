@@ -11,7 +11,7 @@ from display.page_turner import PageTurner, _build_page_first_and_last
 # ---------------------------------------------------------------------------
 
 def test_first_and_last_basic(bar_to_page):
-    """Bars 1–10 on page 0, 11–20 on page 1, 21–30 on page 2."""
+    """Bars 1-10 on page 0, 11-20 on page 1, 21-30 on page 2."""
     first, last = _build_page_first_and_last(bar_to_page)
     assert first[0] == 1
     assert last[0] == 10

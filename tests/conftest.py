@@ -51,7 +51,7 @@ def short_audio():
 
 @pytest.fixture
 def dummy_cqt():
-    """Return a plausible CQT array (84 freq bins × 300 frames)."""
+    """Return a plausible CQT array (84 freq bins x 300 frames)."""
     rng = np.random.default_rng(42)
     return rng.uniform(-80, 0, size=(84, 300)).astype(np.float32)
 
@@ -76,7 +76,7 @@ def bar_times():
 def bar_to_page():
     """
     10 bars per page, 3 pages.
-    Bars 1–10 → page 0, 11–20 → page 1, 21–30 → page 2.
+    Bars 1-10 → page 0, 11-20 → page 1, 21-30 → page 2.
     """
     return {bar: (bar - 1) // 10 for bar in range(1, 31)}
 

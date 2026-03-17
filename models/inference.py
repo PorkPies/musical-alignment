@@ -42,7 +42,7 @@ def load_model(checkpoint_path, device):
 def extract_cqt_from_audio(y, sr=SR):
     """Return a CQT array (freq_bins × time_frames) in dB."""
     return librosa.amplitude_to_db(
-        librosa.cqt(y, sr=sr, hop_length=HOP_SIZE), ref=np.max
+        np.abs(librosa.cqt(y, sr=sr, hop_length=HOP_SIZE)), ref=np.max
     )
 
 
@@ -70,13 +70,20 @@ def _majority(predictions):
     return max(set(predictions), key=list(predictions).count)
 
 
-def run_offline(wav_path, checkpoint_path, callback=None):
+def run_offline(wav_path, checkpoint_path, callback=None, realtime=False):
     """
     Slide over a WAV file and print predicted bar numbers.
 
     Parameters:
         callback: optional callable(bar_number, confidence, time_sec)
+        realtime: if True, sleep between strides so predictions arrive at the
+                  same pace as the audio (stride_duration ≈ 1.5 s per step).
+                  Use this when audio is playing back simultaneously.
     """
+    import time
+
+    stride_duration = (STRIDE_FRAMES * HOP_SIZE) / SR  # seconds per stride
+
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     model, bar_to_class = load_model(checkpoint_path, device)
 
@@ -86,6 +93,7 @@ def run_offline(wav_path, checkpoint_path, callback=None):
 
     predictions = deque(maxlen=SMOOTH_WINDOW)
     for start in range(0, n_frames - SNIPPET_LEN + 1, STRIDE_FRAMES):
+        t_start = time.time()
         snippet = cqt[:, start:start + SNIPPET_LEN]
         bar, conf = predict_snippet(model, snippet, bar_to_class, device)
         predictions.append(bar)
@@ -94,6 +102,11 @@ def run_offline(wav_path, checkpoint_path, callback=None):
         print(f"t={time_sec:.2f}s  bar={smoothed}  conf={conf:.3f}")
         if callback:
             callback(smoothed, conf, time_sec)
+        if realtime:
+            elapsed = time.time() - t_start
+            sleep_for = stride_duration - elapsed
+            if sleep_for > 0:
+                time.sleep(sleep_for)
 
 
 def run_live(checkpoint_path, callback=None):

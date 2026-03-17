@@ -24,6 +24,9 @@ import subprocess
 import tempfile
 import threading
 
+import soundfile as sf
+import sounddevice as sd
+
 base_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 sys.path.insert(0, base_dir)
 
@@ -38,11 +41,13 @@ DEFAULT_XML = os.path.join(base_dir, "data", "scores", "bach_chorale_0.musicxml"
 DEFAULT_MIDI = os.path.join(base_dir, "data", "raw", "bach_chorale_0.mid")
 DEFAULT_CHECKPOINT = os.path.join(base_dir, "models", "checkpoint.pt")
 
-# Common soundfont locations
+# Common soundfont locations (sf2 and sf3 both work with FluidSynth)
 SOUNDFONT_CANDIDATES = [
     os.path.join(base_dir, "FluidR3_GM.sf2"),
     "/usr/share/sounds/sf2/FluidR3_GM.sf2",
     "/usr/share/soundfonts/FluidR3_GM.sf2",
+    "/usr/share/sounds/sf3/MuseScore_General_Lite.sf3",
+    "/usr/share/sounds/sf3/MuseScore_General.sf3",
     os.path.expanduser("~/FluidR3_GM.sf2"),
 ]
 
@@ -168,15 +173,19 @@ def main():
     turner.start()
 
     # ------------------------------------------------------------------ #
-    # 5. Run inference in a background thread
+    # 5. Start audio playback and inference together
     # ------------------------------------------------------------------ #
+    audio, audio_sr = sf.read(wav_path, dtype="float32")
+    print(f"Playing audio ({len(audio) / audio_sr:.1f}s) …")
+    sd.play(audio, samplerate=audio_sr)
+
     def inference_callback(bar_number, confidence, time_sec):
         turner.push_prediction(bar_number, confidence)
 
     inference_thread = threading.Thread(
         target=run_offline,
         args=(wav_path, args.checkpoint),
-        kwargs={"callback": inference_callback},
+        kwargs={"callback": inference_callback, "realtime": True},
         daemon=True,
     )
     inference_thread.start()
@@ -192,6 +201,7 @@ def main():
         inference_thread.join()
 
     turner.stop()
+    sd.stop()
 
     # Clean up temp WAV
     if _tmp_wav is not None and os.path.exists(wav_path):

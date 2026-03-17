@@ -14,7 +14,7 @@ def test_extract_cqt_saves_npy(sine_wav, tmp_path):
 
 
 def test_extract_cqt_output_is_2d(sine_wav, tmp_path):
-    """CQT output has 2 dimensions (freq_bins × time_frames)."""
+    """CQT output has 2 dimensions (freq_bins x time_frames)."""
     out_path = str(tmp_path / "out.npy")
     extract_cqt(sine_wav, out_path)
     arr = np.load(out_path)
