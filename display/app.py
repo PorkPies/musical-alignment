@@ -44,7 +44,7 @@ class ScoreDisplay:
 
         self.root = tk.Tk()
         self.root.title("Musical Score")
-        self.root.configure(bg="black")
+        self.root.configure(bg="white")
 
         if fullscreen:
             self.root.attributes("-fullscreen", True)
@@ -55,7 +55,7 @@ class ScoreDisplay:
         self.root.bind("<Right>", lambda e: self._manual_turn(1))
         self.root.bind("<Left>", lambda e: self._manual_turn(-1))
 
-        self._label = tk.Label(self.root, bg="black")
+        self._label = tk.Label(self.root, bg="white")
         self._label.pack(expand=True, fill=tk.BOTH)
 
         self._tk_images = {}
@@ -80,6 +80,12 @@ class ScoreDisplay:
             if os.path.exists(path):
                 img = Image.open(path)
                 img.thumbnail((w, h), Image.LANCZOS)
+                if img.mode == "RGBA":
+                    bg = Image.new("RGB", img.size, "white")
+                    bg.paste(img, mask=img.split()[3])
+                    img = bg
+                elif img.mode != "RGB":
+                    img = img.convert("RGB")
                 self._tk_images[idx] = ImageTk.PhotoImage(img)
             else:
                 print(f"Warning: page image not found: {path}")

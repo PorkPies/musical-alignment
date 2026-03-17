@@ -3,3 +3,6 @@ __pycache__*
 *.mid
 *.npy
 *.wav
+*.png
+*.pt
+display/rendered/
