@@ -53,15 +53,31 @@ def train():
         # Validation
         model.eval()
         val_loss = 0
+        val_correct = 0
+        val_total = 0
         with torch.no_grad():
             for inputs, labels, _ in val_loader:
                 inputs, labels = inputs.to(device), labels.to(device)
                 outputs = model(inputs)
                 loss = criterion(outputs, labels)
                 val_loss += loss.item()
+                preds = outputs.argmax(dim=1)
+                val_correct += (preds == labels).sum().item()
+                val_total += labels.size(0)
         model.train()
 
-        print(f"Epoch {epoch+1}/{EPOCHS}, Train Loss: {total_loss:.4f}, Val Loss: {val_loss:.4f}")
+        val_acc = val_correct / val_total if val_total > 0 else 0.0
+        print(f"Epoch {epoch+1}/{EPOCHS}, Train Loss: {total_loss:.4f}, Val Loss: {val_loss:.4f}, Val Acc: {val_acc:.4f}")
+
+    # Save checkpoint
+    checkpoint_path = os.path.join(base_dir, "models", "checkpoint.pt")
+    torch.save({
+        "model_state_dict": model.state_dict(),
+        "num_classes": num_classes,
+        "input_shape": sample.shape,
+        "bar_to_class": full_dataset.bar_to_class,
+    }, checkpoint_path)
+    print(f"Model saved to {checkpoint_path}")
 
 if __name__ == "__main__":
     train()
